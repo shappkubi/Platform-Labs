@@ -14,11 +14,32 @@ spec:
       labels:
         app: nginx
     spec:
+      # Volumes define the storage sources for the pod
+      # Can be ConfigMaps, Secrets, PersistentVolumeClaims, etc.
+      volumes:
+      # Define a volume from a ConfigMap
+      - name: nginx-config-volume
+        configMap:
+          # Reference to the ConfigMap by name
+          name: nginx-config
+          # Default permissions for files (octal format: 420 = rw-r-----)
+          defaultMode: 0644
+          # Optional: specify which keys from ConfigMap to include
+          # items:
+          # - key: nginx.conf
+          #   path: nginx.conf
       containers:
       - name: nginx
         image: nginx:stable
         ports:
         - containerPort: 80
+        # VolumeMounts attach volumes to the container filesystem
+        volumeMounts:
+        # Mount the ConfigMap as a file at the nginx config path
+        # This replaces the default nginx.conf inside the container
+        - name: nginx-config-volume
+          mountPath: /etc/nginx
+          readOnly: true  # ConfigMap is read-only to prevent accidental modifications
         resources:
           requests:
             cpu: "100m"

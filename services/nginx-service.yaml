@@ -1,0 +1,37 @@
+# Kubernetes API version for Service resource
+apiVersion: v1
+
+# Kind defines the type of Kubernetes resource - Service in this case
+kind: Service
+
+# Metadata contains identifying information about the Service
+metadata:
+  # Name is the unique identifier for this Service within the namespace
+  name: nginx-service
+  # Labels are key-value pairs used to organize and select Kubernetes objects
+  labels:
+    app: nginx
+
+# Spec defines the desired state and behavior of the Service
+spec:
+  # Type specifies how the Service exposes the application
+  # ClusterIP: Exposes the Service on an internal IP address accessible only within the cluster
+  # This is the default and most common type for internal communication between pods
+  type: ClusterIP
+  
+  # Selector defines which pods this Service routes traffic to
+  # It matches pods with labels that have key "app" with value "nginx"
+  # This must match the labels on the nginx deployment pods
+  selector:
+    app: nginx
+  
+  # Ports defines the port mappings for the Service
+  ports:
+  - # Protocol specifies the transport layer protocol (TCP or UDP)
+    protocol: TCP
+    # Port is the port number exposed by the Service (accessible within the cluster)
+    # Other pods can reach this Service at nginx-service:80
+    port: 80
+    # TargetPort is the port on the pod that the Service forwards traffic to
+    # This must match the containerPort defined in the nginx Deployment
+    targetPort: 80

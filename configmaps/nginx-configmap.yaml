@@ -1,0 +1,71 @@
+# ConfigMap resource that stores nginx configuration data
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # Name of the ConfigMap - referenced when mounting into pods
+  name: nginx-config
+  # Namespace defaults to 'default' if not specified
+  namespace: default
+data:
+  # Key name for the nginx configuration file
+  # Will be mounted as /etc/nginx/nginx.conf inside the container
+  nginx.conf: |
+    # Core nginx configuration with comments explaining each section
+    
+    # Events block: handles connection processing
+    events {
+      # Maximum number of simultaneous connections per worker process
+      worker_connections 1024;
+    }
+    
+    # HTTP block: contains all HTTP-related directives
+    http {
+      # Gzip compression for responses
+      gzip on;
+      gzip_types text/plain text/css application/json application/javascript;
+      gzip_min_length 1000;
+      
+      # Upstream backend (example for load balancing to multiple backends)
+      upstream backend {
+        # This would route to backend servers in production
+        server backend1:8080 weight=5;
+        server backend2:8080;
+      }
+      
+      # Server block: defines a virtual host
+      server {
+        # Port nginx listens on
+        listen 80;
+        # Server name for this virtual host
+        server_name _;
+        
+        # Access and error logs
+        access_log /var/log/nginx/access.log;
+        error_log /var/log/nginx/error.log;
+        
+        # Location block: matches request URIs
+        location / {
+          # Root directory for serving files
+          root /usr/share/nginx/html;
+          # Default file to serve
+          index index.html index.htm;
+          # Try files or directories, fallback to index.html for SPA routing
+          try_files $uri $uri/ /index.html;
+        }
+        
+        # API proxy example (commented out for flexibility)
+        # location /api/ {
+        #   proxy_pass http://backend;
+        #   proxy_set_header Host $host;
+        #   proxy_set_header X-Real-IP $remote_addr;
+        #   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        # }
+        
+        # Health check endpoint for Kubernetes probes
+        location /health {
+          access_log off;
+          return 200 "healthy\n";
+          add_header Content-Type text/plain;
+        }
+      }
+    }
